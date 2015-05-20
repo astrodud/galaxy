@@ -158,7 +158,7 @@ x-axis */
 
 static unistruct *universes = NULL;
 
-Pixmap double_buffer = 0L;
+static Pixmap double_buffer = 0L;
 
 static void
 free_galaxies(unistruct * gp)
@@ -226,7 +226,12 @@ startover(ModeInfo * mi)
   /*gt->nstars = -(NRAND(MAX_STARS / 2)) + MAX_STARS / 2;*/
   gt->nstars = -(NRAND((int)(MAX_STARS * gp->size))) + (int)(MAX_STARS * gp->size);
   gt->stars = (Star *) malloc(gt->nstars * sizeof (Star));
-  gt->oldpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
+  printf("%d\n",dbufp);
+  if (!dbufp) {
+	 gt->oldpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
+  } else {
+	 gt->oldpoints = NULL;
+  }
   gt->newpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
 
   w1 = 2.0 * M_PI * FLOATRAND;
@@ -286,8 +291,10 @@ gt->vel[2];
    st->vel[1] *= DELTAT;
    st->vel[2] *= DELTAT;
 
-   oldp->x = 0;
-   oldp->y = 0;
+   if (!dbufp) {
+	  oldp->x = 0;
+	  oldp->y = 0;
+   }
    newp->x = 0;
    newp->y = 0;
   }
@@ -326,11 +333,11 @@ init_galaxy(ModeInfo * mi)
  gp->midx =  MI_WIN_WIDTH(mi)  / 2;
  gp->midy =  MI_WIN_HEIGHT(mi) / 2;
 
-
- if (double_buffer == 0L) {
+ if (dbufp && double_buffer == 0L) {
 	/* create the double buffer */
 	double_buffer = XCreatePixmap(MI_DISPLAY(mi), MI_WINDOW(mi),
 								  MI_WIN_WIDTH(mi), MI_WIN_HEIGHT(mi), MI_WIN_DEPTH(mi));
+	XSetGraphicsExposures(MI_DISPLAY(mi), MI_GC(mi), False);
 	XSetForeground(MI_DISPLAY(mi), MI_GC(mi), MI_WIN_BLACK_PIXEL(mi));
 	XFillRectangle(MI_DISPLAY(mi), double_buffer, MI_GC(mi), 0, 0, MI_WIN_WIDTH(mi), MI_WIN_HEIGHT(mi));	
  }
@@ -353,7 +360,9 @@ draw_galaxy(ModeInfo * mi)
 	XClearWindow(display, window);*/
 
   XSetForeground(display, gc, MI_WIN_BLACK_PIXEL(mi));
-  XFillRectangle(display, double_buffer, gc, 0, 0, MI_WIN_WIDTH(mi), MI_WIN_HEIGHT(mi));	
+  if ( dbufp ) {
+	 XFillRectangle(display, double_buffer, gc, 0, 0, MI_WIN_WIDTH(mi), MI_WIN_HEIGHT(mi));
+  }
   
   if(spin){
     gp->rot_y += 0.01;
@@ -436,20 +445,25 @@ draw_galaxy(ModeInfo * mi)
     gt->pos[1] += gt->vel[1] * DELTAT;
     gt->pos[2] += gt->vel[2] * DELTAT;
 	
-    /*if (dbufp) {
-	XSetForeground(display, gc, MI_WIN_BLACK_PIXEL(mi));
-	XDrawPoints(display, double_buffer, gc, gt->oldpoints, gt->nstars, CoordModeOrigin);
-    }*/
-    XSetForeground(display, gc, MI_PIXEL(mi, COLORSTEP * gt->galcol));
-    XDrawPoints(display, double_buffer, gc, gt->newpoints, gt->nstars, CoordModeOrigin);
+    if (! dbufp) {
+	   XSetForeground(display, gc, MI_WIN_BLACK_PIXEL(mi));
+	   XDrawPoints(display, window, gc, gt->oldpoints, gt->nstars, CoordModeOrigin);
+	   XSetForeground(display, gc, MI_PIXEL(mi, COLORSTEP * gt->galcol));
+	   XDrawPoints(display, window, gc, gt->newpoints, gt->nstars, CoordModeOrigin);
+	   dummy = gt->oldpoints;
+	   gt->oldpoints = gt->newpoints;
+	   gt->newpoints = dummy;
+    } else {
+	   XSetForeground(display, gc, MI_PIXEL(mi, COLORSTEP * gt->galcol));
+	   XDrawPoints(display, double_buffer, gc, gt->newpoints, gt->nstars, CoordModeOrigin);
+	}
 
-    dummy = gt->oldpoints;
-    gt->oldpoints = gt->newpoints;
-    gt->newpoints = dummy;
   }
 
   /* copy the buffer to the window */
-  XCopyArea(display, double_buffer, window, gc, 0, 0, MI_WIN_WIDTH(mi), MI_WIN_HEIGHT(mi), 0, 0);
+  if (dbufp) {
+	 XCopyArea(display, double_buffer, window, gc, 0, 0, MI_WIN_WIDTH(mi), MI_WIN_HEIGHT(mi), 0, 0);
+  }
   
   gp->step++;
   if (gp->step > gp->f_hititerations * 4)
@@ -460,8 +474,10 @@ ENTRYPOINT void
 reshape_galaxy(ModeInfo * mi, int width, int height)
 {
   XClearWindow (MI_DISPLAY (mi), MI_WINDOW(mi));
-  XFreePixmap(MI_DISPLAY(mi), double_buffer);
-  double_buffer = 0L;
+  if (dbufp) {
+	 XFreePixmap(MI_DISPLAY(mi), double_buffer);
+	 double_buffer = 0L;
+  }
   init_galaxy (mi);
 }
 
@@ -476,8 +492,10 @@ release_galaxy(ModeInfo * mi)
   (void) free((void *) universes);
   universes = NULL;
 
-  XFreePixmap(MI_DISPLAY(mi), double_buffer);
-  double_buffer = 0L;
+  if (dbufp) {
+	 XFreePixmap(MI_DISPLAY(mi), double_buffer);
+	 double_buffer = 0L;
+  }
  }
 }
 
