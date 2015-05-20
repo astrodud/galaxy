@@ -47,7 +47,8 @@ static const char sccsid[] = "@(#)galaxy.c 4.04 97/07/28 xlockmore";
 					"*fpsSolid:  true   \n" \
 					"*ignoreRotation: True \n" \
 
-# define UNIFORM_COLORS
+/*# define UNIFORM_COLORS*/
+# undef UNIFORM_COLORS
 # include "xlockmore.h"    /* from the xscreensaver distribution */
 #else  /* !STANDALONE */
 # include "xlock.h"     /* from the xlockmore distribution */
@@ -99,28 +100,28 @@ ENTRYPOINT ModeSpecOpt galaxy_opts =
 
 #define MINSIZE       1
 #define MINGALAXIES    2
-#define MAX_STARS    3000
+#define MAX_STARS    200000
 #define MAX_IDELTAT    50
 /* These come originally from the Cluster-version */
-#define DEFAULT_GALAXIES  3
-#define DEFAULT_STARS    1000
+#define DEFAULT_GALAXIES  7
+#define DEFAULT_STARS    80000
 #define DEFAULT_HITITERATIONS  7500
-#define DEFAULT_IDELTAT    200 /* 0.02 */
+#define DEFAULT_IDELTAT    100 /* 0.02 */
 #define EPSILON 0.00000001
 
 #define sqrt_EPSILON 0.0001
 
 #define DELTAT (MAX_IDELTAT * 0.0001)
 
-#define GALAXYRANGESIZE  0.1
+#define GALAXYRANGESIZE  0.4
 #define GALAXYMINSIZE  0.15
 #define QCONS    0.001
 
 
-#define COLORBASE  16
+#define COLORBASE  8
 /* colors per galaxy */
-/* #define COLORSTEP  (NUMCOLORS/COLORBASE) */
-# define COLORSTEP (MI_NCOLORS(mi)/COLORBASE)
+/*#define COLORSTEP  (NUMCOLORS/COLORBASE) */
+#define COLORSTEP (MI_NCOLORS(mi)/COLORBASE)
 
 
 typedef struct {
@@ -214,7 +215,14 @@ startover(ModeInfo * mi)
    (void) free((void *) gt->stars);
    gt->stars = NULL;
   }
-  gt->nstars = (NRAND(MAX_STARS / 2)) + MAX_STARS / 2;
+
+  gt->mass = (int) (FLOATRAND * 100.0) + 1;
+
+  /*gp->size = GALAXYRANGESIZE * FLOATRAND + GALAXYMINSIZE;*/
+  gp->size = GALAXYRANGESIZE * gt->mass / 100.0 + GALAXYMINSIZE;
+
+  /*gt->nstars = -(NRAND(MAX_STARS / 2)) + MAX_STARS / 2;*/
+  gt->nstars = -(NRAND((int)(MAX_STARS * gp->size))) + (int)(MAX_STARS * gp->size);
   gt->stars = (Star *) malloc(gt->nstars * sizeof (Star));
   gt->oldpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
   gt->newpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
@@ -239,16 +247,9 @@ startover(ModeInfo * mi)
   gt->vel[0] = FLOATRAND * 2.0 - 1.0;
   gt->vel[1] = FLOATRAND * 2.0 - 1.0;
   gt->vel[2] = FLOATRAND * 2.0 - 1.0;
-  gt->pos[0] = -gt->vel[0] * DELTAT * gp->f_hititerations + FLOATRAND -
-0.5;
-  gt->pos[1] = -gt->vel[1] * DELTAT * gp->f_hititerations + FLOATRAND -
-0.5;
-  gt->pos[2] = -gt->vel[2] * DELTAT * gp->f_hititerations + FLOATRAND -
-0.5;
-
-  gt->mass = (int) (FLOATRAND * 1000.0) + 1;
-
-  gp->size = GALAXYRANGESIZE * FLOATRAND + GALAXYMINSIZE;
+  gt->pos[0] = -gt->vel[0] * DELTAT * gp->f_hititerations + FLOATRAND - 0.5;
+  gt->pos[1] = -gt->vel[1] * DELTAT * gp->f_hititerations + FLOATRAND - 0.5;
+  gt->pos[2] = -gt->vel[2] * DELTAT * gp->f_hititerations + FLOATRAND - 0.5;
 
   for (j = 0; j < gt->nstars; ++j) {
    Star       *st = &gt->stars[j];
