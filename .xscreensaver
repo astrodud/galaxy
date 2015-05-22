@@ -1,5 +1,5 @@
 # XScreenSaver Preferences File
-# Written by xscreensaver-demo 5.15 for dreiss on Tue May 19 13:37:58 2015.
+# Written by xscreensaver-demo 5.15 for dreiss on Wed May 20 14:36:04 2015.
 # http://www.jwz.org/xscreensaver/
 
 timeout:	0:02:00
@@ -24,12 +24,12 @@ fadeTicks:	20
 captureStderr:	True
 ignoreUninstalledPrograms:False
 font:		*-medium-r-*-140-*-m-*
-dpmsEnabled:	False
+dpmsEnabled:	True
 dpmsQuickOff:	False
-dpmsStandby:	2:00:00
-dpmsSuspend:	2:00:00
-dpmsOff:	4:00:00
-grabDesktopImages:  True
+dpmsStandby:	0:20:00
+dpmsSuspend:	0:20:00
+dpmsOff:	0:40:00
+grabDesktopImages:  False
 grabVideoFrames:    False
 chooseRandomImages: False
 imageDirectory:	
@@ -68,8 +68,8 @@ programs:								      \
 				deco -root				    \n\
 				drift -root				    \n\
 -				fadeplot -root				    \n\
-  Best: 			galaxy -root -delay 0 -count 7 -cycles	      \
-				  619 -ncolors 255			    \n\
+  Best: 			galaxy -root -delay 7692 -count 7 -cycles     \
+				  878 -ncolors 255			    \n\
 				goop -root				    \n\
 				grav -root				    \n\
 				ifs -root				    \n\

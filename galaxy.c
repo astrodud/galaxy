@@ -226,7 +226,6 @@ startover(ModeInfo * mi)
   /*gt->nstars = -(NRAND(MAX_STARS / 2)) + MAX_STARS / 2;*/
   gt->nstars = -(NRAND((int)(MAX_STARS * gp->size))) + (int)(MAX_STARS * gp->size);
   gt->stars = (Star *) malloc(gt->nstars * sizeof (Star));
-  printf("%d\n",dbufp);
   if (!dbufp) {
 	 gt->oldpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
   } else {
