@@ -107,18 +107,18 @@ ENTRYPOINT ModeSpecOpt galaxy_opts =
 #define DEFAULT_STARS    80000
 #define DEFAULT_HITITERATIONS  7500
 #define DEFAULT_IDELTAT    100 /* 0.02 */
-#define EPSILON 0.00000001
+#define EPSILON 0.000001 /*0.00000001*/
 
-#define sqrt_EPSILON 0.0001
+#define sqrt_EPSILON 0.001 /*0.0001*/
 
 #define DELTAT (MAX_IDELTAT * 0.0001)
 
 #define GALAXYRANGESIZE  0.4
 #define GALAXYMINSIZE  0.15
-#define QCONS    0.001
+#define QCONS    0.002
 
 
-#define COLORBASE  8
+#define COLORBASE  32
 /* colors per galaxy */
 /*#define COLORSTEP  (NUMCOLORS/COLORBASE) */
 #define COLORSTEP (MI_NCOLORS(mi)/COLORBASE)
@@ -209,8 +209,8 @@ startover(ModeInfo * mi)
   double      sinw1, sinw2, cosw1, cosw2;
 
   gt->galcol = NRAND(COLORBASE - 2);
-  if (gt->galcol > 1)
-   gt->galcol += 2; /* Mult 8; 16..31 no green stars */
+  /*if (gt->galcol > 1)
+	gt->galcol += 2;*/ /* Mult 8; 16..31 no green stars */
   /* Galaxies still may have some green stars but are not all green. */
 
   if (gt->stars != NULL) {
@@ -328,7 +328,7 @@ init_galaxy(ModeInfo * mi)
 
  gp->f_hititerations = MI_CYCLES(mi);
 
- gp->scale = (double) (MI_WIN_WIDTH(mi) + MI_WIN_HEIGHT(mi)) / 8.0;
+ gp->scale = (double) (MI_WIN_WIDTH(mi) + MI_WIN_HEIGHT(mi)) / 16.0;
  gp->midx =  MI_WIN_WIDTH(mi)  / 2;
  gp->midy =  MI_WIN_HEIGHT(mi) / 2;
 
@@ -364,8 +364,8 @@ draw_galaxy(ModeInfo * mi)
   }
   
   if(spin){
-    gp->rot_y += 0.01;
-    gp->rot_x += 0.004;
+    gp->rot_y += 0.01 * 1.4;
+    gp->rot_x += 0.004 * 1.4;
   }
 
   cox = COSF(gp->rot_y);
