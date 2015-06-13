@@ -100,11 +100,11 @@ ENTRYPOINT ModeSpecOpt galaxy_opts =
 
 #define MINSIZE       1
 #define MINGALAXIES    2
-#define MAX_STARS    200000
+#define MAX_STARS    300000
 #define MAX_IDELTAT    50
 /* These come originally from the Cluster-version */
 #define DEFAULT_GALAXIES  7
-#define DEFAULT_STARS    80000
+#define DEFAULT_STARS    120000
 #define DEFAULT_HITITERATIONS  7500
 #define DEFAULT_IDELTAT    100 /* 0.02 */
 #define EPSILON 0.000001 /*0.00000001*/
@@ -135,6 +135,7 @@ typedef struct {
  Star       *stars;
  XPoint     *oldpoints;
  XPoint     *newpoints;
+ XRectangle *newrects;  
  double      pos[3], vel[3];
  int         galcol;
 } Galaxy;
@@ -175,6 +176,8 @@ free_galaxies(unistruct * gp)
        (void) free((void *) gt->oldpoints);
    if (gt->newpoints != NULL)
        (void) free((void *) gt->newpoints);
+   if (gt->newrects != NULL)
+       (void) free((void *) gt->newrects);
   }
   (void) free((void *) gp->galaxies);
   gp->galaxies = NULL;
@@ -232,6 +235,7 @@ startover(ModeInfo * mi)
 	 gt->oldpoints = NULL;
   }
   gt->newpoints = (XPoint *) malloc(gt->nstars * sizeof (XPoint));
+  gt->newrects = (XRectangle *) malloc(gt->nstars * sizeof (XRectangle));
 
   w1 = 2.0 * M_PI * FLOATRAND;
   w2 = 2.0 * M_PI * FLOATRAND;
@@ -261,6 +265,7 @@ startover(ModeInfo * mi)
    Star       *st = &gt->stars[j];
    XPoint     *oldp = &gt->oldpoints[j];
    XPoint     *newp = &gt->newpoints[j];
+   XRectangle *newr = &gt->newrects[j];
 
    double      sinw, cosw;
 
@@ -296,6 +301,10 @@ gt->vel[2];
    }
    newp->x = 0;
    newp->y = 0;
+   newr->x = 0;
+   newr->y = 0;
+   newr->width = 2;
+   newr->height = 2;
   }
 
  }
@@ -328,7 +337,7 @@ init_galaxy(ModeInfo * mi)
 
  gp->f_hititerations = MI_CYCLES(mi);
 
- gp->scale = (double) (MI_WIN_WIDTH(mi) + MI_WIN_HEIGHT(mi)) / 16.0;
+ gp->scale = (double) (MI_WIN_WIDTH(mi) + MI_WIN_HEIGHT(mi)) / 32.0;
  gp->midx =  MI_WIN_WIDTH(mi)  / 2;
  gp->midy =  MI_WIN_HEIGHT(mi) / 2;
 
@@ -368,10 +377,10 @@ draw_galaxy(ModeInfo * mi)
     gp->rot_x += 0.004 * 1.4;
   }
 
-  cox = COSF(gp->rot_y);
-  six = SINF(gp->rot_y);
-  cor = COSF(gp->rot_x);
-  sir = SINF(gp->rot_x);
+  cox = COSF(gp->rot_y);  /* 1 if no rot */
+  six = SINF(gp->rot_y);  /* 0 if no rot */
+  cor = COSF(gp->rot_x);  /* 1 if no rot */
+  sir = SINF(gp->rot_x);  /* 0 if no rot */
 
   eps = 1/(EPSILON * sqrt_EPSILON * DELTAT * DELTAT * QCONS);
   
@@ -381,6 +390,7 @@ draw_galaxy(ModeInfo * mi)
     for (j = 0; j < gp->galaxies[i].nstars; ++j) {
       Star       *st = &gt->stars[j];
       XPoint     *newp = &gt->newpoints[j];
+      XRectangle *newr = &gt->newrects[j];
       double      v0 = st->vel[0];
       double      v1 = st->vel[1];
       double      v2 = st->vel[2];
@@ -414,7 +424,12 @@ draw_galaxy(ModeInfo * mi)
       newp->y = (short) (((cor * st->pos[1]) - (sir * ((six * st->pos[0]) +
                                                        (cox * st->pos[2]))))
                          * gp->scale) + gp->midy;
-
+	  newr->x = newp->x;
+	  newr->y = newp->y;
+	  /*if ( st->pos[2]+5<0 ) printf("%f\n",st->pos[2]+5);*/
+	  /*newr->width = (short) st->pos[2] + 5;
+	  newr->width = newr->width > 10 ? 10 : newr->width;
+	  newr->height = (short) newr->width;*/
     }
 
     for (k = i + 1; k < gp->ngalaxies; ++k) {
@@ -454,7 +469,8 @@ draw_galaxy(ModeInfo * mi)
 	   gt->newpoints = dummy;
     } else {
 	   XSetForeground(display, gc, MI_PIXEL(mi, COLORSTEP * gt->galcol));
-	   XDrawPoints(display, double_buffer, gc, gt->newpoints, gt->nstars, CoordModeOrigin);
+	   /*XDrawPoints(display, double_buffer, gc, gt->newpoints, gt->nstars, CoordModeOrigin);*/
+	   XFillRectangles(display, double_buffer, gc, gt->newrects, gt->nstars);
 	}
 
   }
@@ -465,7 +481,7 @@ draw_galaxy(ModeInfo * mi)
   }
   
   gp->step++;
-  if (gp->step > gp->f_hititerations * 4)
+  if (gp->step > gp->f_hititerations * 16)
     startover(mi);
 }
 
