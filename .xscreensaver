@@ -1,5 +1,5 @@
 # XScreenSaver Preferences File
-# Written by xscreensaver-demo 5.15 for dreiss on Thu May 21 17:34:18 2015.
+# Written by xscreensaver-demo 5.15 for dreiss on Mon Jun  1 13:53:11 2015.
 # http://www.jwz.org/xscreensaver/
 
 timeout:	0:02:00
@@ -69,7 +69,7 @@ programs:								      \
 				drift -root				    \n\
 -				fadeplot -root				    \n\
   Best: 			galaxy -root -delay 7692 -count -7	      \
-				  -cycles 878 -ncolors 255		    \n\
+				  -cycles 1000 -ncolors 255		    \n\
 				goop -root				    \n\
 				grav -root				    \n\
 				ifs -root				    \n\
